@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaunchKit — Know exactly who wants your app</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cabinet+Grotesk:wght@400;500;700;800;900&family=JetBrains+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#05050a;
+  --paper:#f7f6f1;
+  --surface:#0f0f1a;
+  --surface2:#161624;
+  --b:rgba(255,255,255,0.08);
+  --b2:rgba(255,255,255,0.14);
+  --lime:#c6ff47;
+  --lime2:#a8e800;
+  --coral:#ff3d2e;
+  --gold:#ffcc00;
+  --muted:rgba(255,255,255,0.38);
+  --faint:rgba(255,255,255,0.14);
+  --head:'Cabinet Grotesk',sans-serif;
+  --display:'Bebas Neue',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font-family:var(--head);font-size:15px;line-height:1.6;overflow-x:hidden;cursor:default}
+
+/* GRAIN */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:1}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;border-bottom:1px solid var(--b);position:sticky;top:0;z-index:100;background:rgba(5,5,10,0.85);backdrop-filter:blur(12px)}
+.logo{font-family:var(--display);font-size:22px;letter-spacing:0.08em;color:var(--paper);display:flex;align-items:center;gap:10px}
+.logo-sq{width:26px;height:26px;background:var(--lime);border-radius:5px;display:grid;place-items:center;flex-shrink:0}
+.logo-sq svg{width:13px;height:13px}
+.nav-links{display:flex;gap:32px}
+.nav-a{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--muted);letter-spacing:0.06em;text-decoration:none;transition:color 0.15s}
+.nav-a:hover{color:var(--paper)}
+.nav-cta{background:var(--lime);color:var(--ink);font-family:var(--head);font-weight:900;font-size:12px;padding:10px 22px;border-radius:6px;border:none;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;transition:all 0.15s}
+.nav-cta:hover{background:#fff;transform:translateY(-1px)}
+
+/* HERO */
+.hero{padding:100px 48px 80px;max-width:1140px;margin:0 auto;position:relative}
+
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:28px}
+.kicker-tag{background:rgba(198,255,71,0.1);border:1px solid rgba(198,255,71,0.22);color:var(--lime);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:4px}
+.kicker-count{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot-live{width:6px;height:6px;background:#22ff88;border-radius:50%;box-shadow:0 0 8px rgba(34,255,136,0.5);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+
+h1{font-family:var(--display);font-size:clamp(68px,9vw,120px);line-height:0.9;letter-spacing:0.02em;text-transform:uppercase;margin-bottom:32px;max-width:900px}
+h1 .w1{display:block;color:var(--paper)}
+h1 .w2{display:block;color:var(--lime);text-shadow:0 0 80px rgba(198,255,71,0.2)}
+h1 .w3{display:block;-webkit-text-stroke:1px rgba(255,255,255,0.25);color:transparent}
+
+.hero-body{font-family:var(--mono);font-weight:300;font-size:15px;color:var(--muted);line-height:1.9;max-width:520px;margin-bottom:40px}
+.hero-body strong{color:rgba(255,255,255,0.82);font-weight:400;font-style:italic}
+
+/* EMAIL FORM */
+.form-wrap{display:flex;gap:10px;max-width:520px;margin-bottom:20px}
+.email-input{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--b2);border-radius:8px;padding:15px 18px;color:var(--paper);font-family:var(--mono);font-size:13px;font-weight:300;outline:none;transition:border-color 0.2s}
+.email-input::placeholder{color:var(--faint)}
+.email-input:focus{border-color:rgba(198,255,71,0.4)}
+.submit-btn{background:var(--lime);color:var(--ink);font-family:var(--head);font-weight:900;font-size:13px;padding:15px 28px;border-radius:8px;border:none;cursor:pointer;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase;transition:all 0.15s;flex-shrink:0}
+.submit-btn:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 40px rgba(198,255,71,0.2)}
+.submit-btn:active{transform:translateY(0)}
+
+.form-note{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:0.04em}
+.form-note span{color:rgba(255,255,255,0.35)}
+
+.success-msg{display:none;background:rgba(34,255,136,0.08);border:1px solid rgba(34,255,136,0.2);border-radius:8px;padding:16px 20px;font-family:var(--mono);font-size:13px;color:#22ff88;max-width:520px;line-height:1.6}
+
+/* SOCIAL PROOF */
+.proof-row{display:flex;align-items:center;gap:14px;margin-top:40px;padding-top:40px;border-top:1px solid var(--b)}
+.avatars{display:flex}
+.av{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);margin-right:-9px;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;font-family:var(--head)}
+.proof-copy{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--muted);line-height:1.6}
+.proof-copy strong{color:rgba(255,255,255,0.7);font-weight:400}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--b);border-bottom:1px solid var(--b);margin:0 0 100px}
+.stat{padding:32px 48px;border-right:1px solid var(--b)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:var(--display);font-size:52px;letter-spacing:0.02em;color:var(--lime);line-height:1}
+.stat-l{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--muted);margin-top:4px;letter-spacing:0.04em}
+
+/* PROBLEM */
+.problem{padding:0 48px 100px;max-width:1140px;margin:0 auto}
+.sec-tag{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-tag::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.2)}
+h2{font-family:var(--display);font-size:clamp(44px,6vw,80px);line-height:0.92;letter-spacing:0.02em;text-transform:uppercase;margin-bottom:48px}
+h2 em{color:var(--lime);font-style:normal}
+h2 .out{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,0.25)}
+
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.prob-card{background:var(--surface);border:1px solid var(--b);border-radius:16px;padding:28px;position:relative;overflow:hidden;transition:border-color 0.2s}
+.prob-card:hover{border-color:var(--b2)}
+.prob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--coral);opacity:0}
+.prob-card:hover::before{opacity:1}
+.prob-num{font-family:var(--display);font-size:64px;color:rgba(255,255,255,0.04);line-height:1;margin-bottom:12px}
+.prob-title{font-size:16px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;color:var(--paper)}
+.prob-body{font-family:var(--mono);font-size:12px;font-weight:300;color:var(--muted);line-height:1.8}
+
+/* PRODUCT PREVIEW */
+.product{padding:0 48px 100px;max-width:1140px;margin:0 auto}
+.product-card{background:var(--surface);border:1px solid var(--b);border-radius:24px;overflow:hidden}
+.product-bar{background:rgba(255,255,255,0.03);border-bottom:1px solid var(--b);padding:14px 20px;display:flex;align-items:center;gap:10px}
+.p-dots{display:flex;gap:5px}
+.p-dot{width:9px;height:9px;border-radius:50%}
+.pd1{background:#ff5f57}.pd2{background:#febc2e}.pd3{background:#28c840}
+.p-bar-url{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.2);margin:0 auto;letter-spacing:0.06em}
+
+.product-inner{display:grid;grid-template-columns:1fr 1.2fr;min-height:480px}
+.prod-left{padding:36px;border-right:1px solid var(--b)}
+.prod-label{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.prod-url-row{display:flex;gap:8px;margin-bottom:20px}
+.prod-url-inp{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--b2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.5)}
+.prod-btn{background:var(--lime);color:var(--ink);font-family:var(--head);font-weight:900;font-size:11px;padding:11px 16px;border-radius:8px;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.04em}
+
+.result-block{margin-bottom:18px}
+.result-label{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--lime);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.result-label::after{content:'';flex:1;height:1px;background:rgba(198,255,71,0.12)}
+
+.customer-card{background:rgba(255,255,255,0.03);border:1px solid var(--b);border-radius:10px;padding:14px}
+.customer-name{font-size:13px;font-weight:800;margin-bottom:4px}
+.customer-traits{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.trait{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:100px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45);border:1px solid var(--b)}
+.trait.hot{background:rgba(198,255,71,0.08);color:rgba(198,255,71,0.7);border-color:rgba(198,255,71,0.2)}
+.customer-pain{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--muted);line-height:1.7;font-style:italic}
+.customer-pain::before{content:'"';color:var(--lime);font-style:normal;margin-right:2px}
+.customer-pain::after{content:'"';color:var(--lime);font-style:normal;margin-left:2px}
+
+.prod-right{padding:36px}
+.channel-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.channel-item{background:rgba(255,255,255,0.03);border:1px solid var(--b);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;transition:border-color 0.15s}
+.channel-item:hover{border-color:var(--b2)}
+.ch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ch-info{flex:1}
+.ch-name{font-size:12px;font-weight:800;letter-spacing:-0.01em}
+.ch-sub{font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:300}
+.ch-score{display:flex;flex-direction:column;align-items:flex-end}
+.ch-match{font-family:var(--display);font-size:20px;letter-spacing:0.02em;color:var(--lime);line-height:1}
+.ch-match-l{font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+.post-examples{display:flex;flex-direction:column;gap:8px}
+.post-ex{background:rgba(255,255,255,0.03);border:1px solid var(--b);border-radius:10px;padding:12px 14px}
+.post-ex-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.post-ex-source{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
+.post-ex-upvotes{font-family:var(--display);font-size:16px;color:var(--gold);letter-spacing:0.02em}
+.post-ex-title{font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);line-height:1.5}
+
+/* WHY SECTION */
+.why{padding:0 48px 100px;max-width:1140px;margin:0 auto}
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--b);border:1px solid var(--b);border-radius:16px;overflow:hidden}
+.why-item{background:var(--ink);padding:32px 28px;transition:background 0.2s}
+.why-item:hover{background:var(--surface)}
+.why-icon{font-size:24px;margin-bottom:16px;display:block}
+.why-title{font-size:15px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
+.why-body{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--muted);line-height:1.8}
+
+/* TESTIMONIALS */
+.testi{padding:0 48px 100px;max-width:1140px;margin:0 auto}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.testi-card{border:1px solid var(--b);border-radius:16px;padding:28px;transition:all 0.2s;cursor:default}
+.testi-card:hover{border-color:var(--b2);transform:translateY(-3px)}
+.testi-card.feat{border-color:rgba(198,255,71,0.3);background:rgba(198,255,71,0.02)}
+.stars{display:flex;gap:3px;margin-bottom:14px}
+.star{color:var(--gold);font-size:12px}
+.testi-result{display:inline-block;background:rgba(198,255,71,0.1);border:1px solid rgba(198,255,71,0.2);color:var(--lime);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:100px;margin-bottom:12px}
+.testi-text{font-family:var(--mono);font-size:12px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.85;margin-bottom:18px}
+.testi-auth{display:flex;align-items:center;gap:10px}
+.testi-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;font-family:var(--head);color:#fff;flex-shrink:0}
+.testi-name{font-size:12px;font-weight:800;letter-spacing:-0.01em}
+.testi-handle{font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:300}
+
+/* PRICING */
+.pricing{padding:0 48px 100px;max-width:1140px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px}
+.price-card{border:1px solid var(--b);border-radius:16px;padding:32px;transition:all 0.2s}
+.price-card:hover{border-color:var(--b2)}
+.price-card.feat{border-color:rgba(198,255,71,0.35);background:rgba(198,255,71,0.02)}
+.price-badge{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:100px;margin-bottom:16px;display:inline-block}
+.pb-free{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border:1px solid var(--b)}
+.pb-early{background:rgba(198,255,71,0.12);color:var(--lime);border:1px solid rgba(198,255,71,0.25)}
+.price-amount{font-family:var(--display);font-size:56px;letter-spacing:0.02em;line-height:1;margin-bottom:4px}
+.price-amount span{font-family:var(--mono);font-size:13px;font-weight:300;color:var(--muted);letter-spacing:0.04em}
+.price-period{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:20px}
+.price-features{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.price-feat{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:300;color:rgba(255,255,255,0.55)}
+.pf-check{color:var(--lime);font-size:12px;flex-shrink:0}
+.pf-check.no{color:rgba(255,255,255,0.15)}
+.price-btn{width:100%;padding:13px;border-radius:8px;font-family:var(--head);font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s;border:none}
+.pb-btn-free{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);border:1px solid var(--b)}
+.pb-btn-free:hover{background:rgba(255,255,255,0.1);color:var(--paper)}
+.pb-btn-paid{background:var(--lime);color:var(--ink)}
+.pb-btn-paid:hover{background:#fff;transform:translateY(-2px);box-shadow:0 10px 30px rgba(198,255,71,0.2)}
+
+/* CTA */
+.cta{margin:0 48px 80px;border-radius:24px;background:var(--lime);padding:72px 64px;position:relative;overflow:hidden}
+.cta::before{content:'LAUNCH';font-family:var(--display);font-size:220px;color:rgba(0,0,0,0.05);position:absolute;right:-20px;bottom:-50px;line-height:1;pointer-events:none;letter-spacing:0.02em;white-space:nowrap}
+.cta-inner{max-width:580px;position:relative;z-index:1}
+.cta-kicker{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(0,0,0,0.4);margin-bottom:12px}
+.cta h2{color:var(--ink);margin-bottom:16px}
+.cta-body{font-family:var(--mono);font-weight:300;font-size:13px;color:rgba(0,0,0,0.5);margin-bottom:32px;line-height:1.8}
+.cta-form{display:flex;gap:10px;max-width:500px}
+.cta-input{flex:1;background:rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.15);border-radius:8px;padding:15px 18px;color:var(--ink);font-family:var(--mono);font-size:13px;outline:none;transition:border-color 0.2s}
+.cta-input::placeholder{color:rgba(0,0,0,0.3)}
+.cta-input:focus{border-color:rgba(0,0,0,0.3)}
+.cta-btn{background:var(--ink);color:var(--lime);font-family:var(--head);font-weight:900;font-size:13px;padding:15px 28px;border-radius:8px;border:none;cursor:pointer;white-space:nowrap;text-transform:uppercase;letter-spacing:0.04em;transition:all 0.15s}
+.cta-btn:hover{background:#111;transform:translateY(-2px)}
+.cta-note{font-family:var(--mono);font-size:10px;color:rgba(0,0,0,0.35);margin-top:12px;letter-spacing:0.04em}
+
+/* FAQ */
+.faq{padding:0 48px 100px;max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--b);padding:24px 0;cursor:pointer}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-size:15px;font-weight:800;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.faq-arrow{font-size:18px;color:var(--lime);transition:transform 0.2s;flex-shrink:0}
+.faq-a{font-family:var(--mono);font-size:12px;font-weight:300;color:var(--muted);line-height:1.8;margin-top:14px;display:none}
+.faq-item.open .faq-arrow{transform:rotate(45deg)}
+.faq-item.open .faq-a{display:block}
+
+/* FOOTER */
+footer{border-top:1px solid var(--b);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-logo{font-family:var(--display);font-size:18px;letter-spacing:0.08em;display:flex;align-items:center;gap:8px}
+.footer-links{display:flex;gap:24px}
+.fl{font-family:var(--mono);font-size:10px;font-weight:300;color:var(--muted);text-decoration:none;letter-spacing:0.06em;transition:color 0.15s}
+.fl:hover{color:var(--paper)}
+.footer-copy{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:0.04em}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fade-up{opacity:0;animation:fadeUp 0.7s ease forwards}
+.d1{animation-delay:0.1s}.d2{animation-delay:0.2s}.d3{animation-delay:0.35s}.d4{animation-delay:0.5s}.d5{animation-delay:0.65s}
+
+@media(max-width:768px){
+  nav{padding:16px 24px}
+  .nav-links{display:none}
+  .hero{padding:60px 24px 60px}
+  h1{font-size:64px}
+  .form-wrap{flex-direction:column}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{padding:24px}
+  .problem{padding:0 24px 60px}
+  .problem-grid{grid-template-columns:1fr}
+  .product{padding:0 24px 60px}
+  .product-inner{grid-template-columns:1fr}
+  .prod-right{border-top:1px solid var(--b)}
+  .why{padding:0 24px 60px}
+  .why-grid{grid-template-columns:1fr}
+  .testi{padding:0 24px 60px}
+  .testi-grid{grid-template-columns:1fr}
+  .pricing{padding:0 24px 60px}
+  .pricing-grid{grid-template-columns:1fr}
+  .cta{margin:0 24px 60px;padding:48px 32px}
+  .cta-form{flex-direction:column}
+  .faq{padding:0 24px 60px}
+  footer{padding:24px;flex-direction:column;align-items:flex-start;gap:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-sq">
+      <svg viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2l4.5 4.5L6.5 11" stroke="#05050a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    LAUNCHKIT
+  </div>
+  <div class="nav-links">
+    <a class="nav-a" href="#how">how it works</a>
+    <a class="nav-a" href="#preview">preview</a>
+    <a class="nav-a" href="#pricing">pricing</a>
+    <a class="nav-a" href="#faq">faq</a>
+  </div>
+  <button class="nav-cta" onclick="document.getElementById('hero-email').focus()">get early access</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-kicker fade-up d1">
+    <span class="kicker-tag">early access</span>
+    <span class="kicker-count"><span class="dot-live"></span>312 indie devs on the waitlist</span>
+  </div>
+
+  <h1 class="fade-up d2">
+    <span class="w1">Know exactly</span>
+    <span class="w2">who wants</span>
+    <span class="w3">your app.</span>
+  </h1>
+
+  <p class="hero-body fade-up d3">
+    You built something real. But <strong>who is your customer?</strong><br>
+    Where do they hang out? What makes them click?<br><br>
+    Paste your app URL. Get your <strong>exact customer profile</strong>, the <strong>10 communities</strong> they live in, and <strong>real posts that already went viral</strong> with your audience — in 60 seconds.
+  </p>
+
+  <div class="form-wrap fade-up d4">
+    <input class="email-input" id="hero-email" type="email" placeholder="your@email.com">
+    <button class="submit-btn" onclick="handleSubmit('hero-email','hero-success')">get early access →</button>
+  </div>
+  <div class="success-msg" id="hero-success">
+    You're on the list. We'll email you the moment it's live — you're #<span id="hero-num">313</span> in line. Tell a friend and skip the queue.
+  </div>
+  <p class="form-note fade-up d4">Free tier available. No credit card. <span>Ships in ~2 weeks.</span></p>
+
+  <div class="proof-row fade-up d5">
+    <div class="avatars">
+      <div class="av" style="background:#6c63ff">AK</div>
+      <div class="av" style="background:#ff4d3d">SR</div>
+      <div class="av" style="background:#00b894">DM</div>
+      <div class="av" style="background:#fdcb6e;color:#333">JP</div>
+      <div class="av" style="background:#0057ff">MR</div>
+    </div>
+    <div class="proof-copy">
+      <strong>312 builders</strong> already on the waitlist.<br>
+      Average time spent on marketing before LaunchKit: <strong>6 hours/week.</strong>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-n">87%</div><div class="stat-l">of indie apps get zero users in month one</div></div>
+  <div class="stat"><div class="stat-n">6h</div><div class="stat-l">wasted per week on wrong channels</div></div>
+  <div class="stat"><div class="stat-n">60s</div><div class="stat-l">to get your full positioning report</div></div>
+  <div class="stat"><div class="stat-n">$0</div><div class="stat-l">ad spend needed when you know where to post</div></div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem" id="how">
+  <div class="sec-tag">the real problem</div>
+  <h2>You're not bad<br>at marketing.<br><em>You just don't</em><br><span class="out">know your customer.</span></h2>
+  <div class="problem-grid">
+    <div class="prob-card">
+      <div class="prob-num">01</div>
+      <div class="prob-title">You're posting in the wrong places</div>
+      <div class="prob-body">Your customer is in 3 specific subreddits, 2 Discord servers, and one niche forum you've never heard of. You're posting on Twitter to 40 followers. The audiences don't overlap at all.</div>
+    </div>
+    <div class="prob-card">
+      <div class="prob-num">02</div>
+      <div class="prob-title">You're describing the wrong thing</div>
+      <div class="prob-body">You talk about features. Your customer cares about outcomes. "20+ widgets" means nothing. "Stop staring at your boring Notion setup" hits because it names the exact feeling they have every morning.</div>
+    </div>
+    <div class="prob-card">
+      <div class="prob-num">03</div>
+      <div class="prob-title">You don't know who your customer actually is</div>
+      <div class="prob-body">You think it's "anyone who uses productivity tools." It's actually a 27-year-old solo founder who lives in Notion, hates their job, and spends 30 minutes every Sunday tweaking their dashboard.</div>
+    </div>
+    <div class="prob-card">
+      <div class="prob-num">04</div>
+      <div class="prob-title">AI copy generators don't solve this</div>
+      <div class="prob-body">ChatGPT and Claude can write you a Reddit post in 10 seconds. But if you don't know which subreddit to post in, what tone that community expects, and what they actually respond to — the copy is worthless.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCT PREVIEW -->
+<section class="product" id="preview">
+  <div class="sec-tag">what you get</div>
+  <h2>Your positioning<br><em>report.</em> In<br><span class="out">60 seconds.</span></h2>
+  <div class="product-card">
+    <div class="product-bar">
+      <div class="p-dots"><div class="p-dot pd1"></div><div class="p-dot pd2"></div><div class="p-dot pd3"></div></div>
+      <span class="p-bar-url">launchkit.so/app</span>
+    </div>
+    <div class="product-inner">
+      <div class="prod-left">
+        <div class="prod-label">your app url</div>
+        <div class="prod-url-row">
+          <div class="prod-url-inp">https://notionwidgets.co</div>
+          <button class="prod-btn">analyse →</button>
+        </div>
+
+        <div class="result-block">
+          <div class="result-label">your real customer</div>
+          <div class="customer-card">
+            <div class="customer-name">The Notion Power User</div>
+            <div class="customer-traits">
+              <span class="trait hot">solo founder</span>
+              <span class="trait hot">daily notion user</span>
+              <span class="trait">age 24–34</span>
+              <span class="trait">remote worker</span>
+              <span class="trait">productivity obsessed</span>
+            </div>
+            <div class="customer-pain">I spend more time setting up my Notion than actually working and it still looks like garbage.</div>
+          </div>
+        </div>
+
+        <div class="result-block">
+          <div class="result-label">what messaging hits them</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:rgba(198,255,71,0.06);border:1px solid rgba(198,255,71,0.15);border-radius:8px;padding:10px 12px;font-size:11px;font-family:var(--mono);color:rgba(255,255,255,0.7);line-height:1.6"><span style="color:var(--lime);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:4px">use this →</span>Stop staring at your boring Notion setup.</div>
+            <div style="background:rgba(255,255,255,0.02);border:1px solid var(--b);border-radius:8px;padding:10px 12px;font-size:11px;font-family:var(--mono);color:rgba(255,255,255,0.3);line-height:1.6;text-decoration:line-through"><span style="color:rgba(255,255,255,0.2);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:4px">avoid this →</span>20+ beautiful embeddable widgets for your workflow.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-right">
+        <div class="result-label">your top communities</div>
+        <div class="channel-list">
+          <div class="channel-item">
+            <div class="ch-dot" style="background:#ff4500"></div>
+            <div class="ch-info"><div class="ch-name">r/Notion</div><div class="ch-sub">478k members · posts daily · story format wins</div></div>
+            <div class="ch-score"><div class="ch-match">97%</div><div class="ch-match-l">match</div></div>
+          </div>
+          <div class="channel-item">
+            <div class="ch-dot" style="background:#ff4500"></div>
+            <div class="ch-info"><div class="ch-name">r/SideProject</div><div class="ch-sub">180k members · builders love feedback posts</div></div>
+            <div class="ch-score"><div class="ch-match">91%</div><div class="ch-match-l">match</div></div>
+          </div>
+          <div class="channel-item">
+            <div class="ch-dot" style="background:#0e76a8"></div>
+            <div class="ch-info"><div class="ch-name">Notion Creators (Discord)</div><div class="ch-sub">42k members · #tools channel · very active</div></div>
+            <div class="ch-score"><div class="ch-match">88%</div><div class="ch-match-l">match</div></div>
+          </div>
+          <div class="channel-item">
+            <div class="ch-dot" style="background:#1da1f2"></div>
+            <div class="ch-info"><div class="ch-name">Twitter #NotionTips</div><div class="ch-sub">Before/after content performs best here</div></div>
+            <div class="ch-score"><div class="ch-match">82%</div><div class="ch-match-l">match</div></div>
+          </div>
+        </div>
+
+        <div class="result-label">posts that worked for your audience</div>
+        <div class="post-examples">
+          <div class="post-ex">
+            <div class="post-ex-head"><span class="post-ex-source">r/Notion · 3 days ago</span><span class="post-ex-upvotes">↑ 2.4k</span></div>
+            <div class="post-ex-title">I redesigned my Notion workspace and now I actually want to open it every morning</div>
+          </div>
+          <div class="post-ex">
+            <div class="post-ex-head"><span class="post-ex-source">r/SideProject · 1 week ago</span><span class="post-ex-upvotes">↑ 847</span></div>
+            <div class="post-ex-title">Built something for Notion because my dashboard looked like a 2009 spreadsheet [Show HN]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why">
+  <div class="sec-tag">why this works</div>
+  <h2>Not AI fluff.<br><em>Real signal.</em></h2>
+  <div class="why-grid">
+    <div class="why-item">
+      <span class="why-icon">🎯</span>
+      <div class="why-title">Positioning first, copy second</div>
+      <div class="why-body">Every marketing tool skips to writing copy. We do the thinking first — who is your customer, what do they actually feel, where are they. Copy without positioning is noise.</div>
+    </div>
+    <div class="why-item">
+      <span class="why-icon">📡</span>
+      <div class="why-title">Curated community database</div>
+      <div class="why-body">200+ communities hand-researched and tagged by category, audience, posting rules, and what formats perform. Not scraped live — curated properly so it doesn't break.</div>
+    </div>
+    <div class="why-item">
+      <span class="why-icon">📋</span>
+      <div class="why-title">Real proof, not templates</div>
+      <div class="why-body">We show you actual posts that went viral with your exact audience — not generic templates. You see the pattern, you write the version for your app. Much more powerful.</div>
+    </div>
+    <div class="why-item">
+      <span class="why-icon">⚡</span>
+      <div class="why-title">60 seconds, not 6 hours</div>
+      <div class="why-body">A good marketing strategy used to take days of research. We compress the research phase into under a minute so you spend your time doing, not planning.</div>
+    </div>
+    <div class="why-item">
+      <span class="why-icon">🔁</span>
+      <div class="why-title">Works for every launch</div>
+      <div class="why-body">Launching a new feature? Pivoting the product? Use it again. Different URL, different report. Your positioning evolves — your research should too.</div>
+    </div>
+    <div class="why-item">
+      <span class="why-icon">🚫</span>
+      <div class="why-title">Claude can't do this alone</div>
+      <div class="why-body">You could ask Claude to write your marketing. But Claude doesn't know your specific audience, which communities they live in, or what posts they upvote. That's what we add.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testi">
+  <div class="sec-tag">early testers</div>
+  <h2>What builders<br><em>are saying.</em></h2>
+  <div class="testi-grid">
+    <div class="testi-card feat">
+      <div class="testi-result">+400 users week one</div>
+      <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <p class="testi-text">"I had no idea my customer was in r/Notion. I'd been posting in r/productivity for 3 months with zero traction. Switched channels, first post got 2k upvotes, 400 signups. That's it."</p>
+      <div class="testi-auth">
+        <div class="testi-av" style="background:#6c63ff">AK</div>
+        <div><div class="testi-name">Arjun K.</div><div class="testi-handle">built NotionWidgets · @arjun_builds</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-result">found my ICP in 60s</div>
+      <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <p class="testi-text">"The customer profile it generated was more accurate than the ICP doc I spent two days writing. It called out the exact frustration my users have — almost word for word."</p>
+      <div class="testi-auth">
+        <div class="testi-av" style="background:#ff4d3d">SR</div>
+        <div><div class="testi-name">Sara R.</div><div class="testi-handle">built Listly · @sara_makes</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-result">stopped wasting time</div>
+      <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <p class="testi-text">"I was spending 6 hours a week on marketing and getting nowhere. This told me I was targeting the wrong person entirely. One pivot, one week — first paying customer."</p>
+      <div class="testi-auth">
+        <div class="testi-av" style="background:#0057ff">DM</div>
+        <div><div class="testi-name">Dev M.</div><div class="testi-handle">built Calmly · @devbuilds</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="sec-tag">pricing</div>
+  <h2>Simple.<br><em>Fair.</em></h2>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <span class="price-badge pb-free">free forever</span>
+      <div class="price-amount">$0</div>
+      <div class="price-period">no credit card needed</div>
+      <div class="price-features">
+        <div class="price-feat"><span class="pf-check">✓</span>3 app analyses per month</div>
+        <div class="price-feat"><span class="pf-check">✓</span>Customer profile</div>
+        <div class="price-feat"><span class="pf-check">✓</span>Top 5 communities</div>
+        <div class="price-feat"><span class="pf-check no">✗</span><span style="color:rgba(255,255,255,0.2)">Real post examples</span></div>
+        <div class="price-feat"><span class="pf-check no">✗</span><span style="color:rgba(255,255,255,0.2)">Messaging angle report</span></div>
+      </div>
+      <button class="price-btn pb-btn-free" onclick="document.getElementById('hero-email').focus();window.scrollTo({top:0,behavior:'smooth'})">join waitlist</button>
+    </div>
+    <div class="price-card feat">
+      <span class="price-badge pb-early">early bird — 60% off</span>
+      <div class="price-amount">$9 <span>/ month</span></div>
+      <div class="price-period">normally $24/mo · locked in forever</div>
+      <div class="price-features">
+        <div class="price-feat"><span class="pf-check">✓</span>Unlimited app analyses</div>
+        <div class="price-feat"><span class="pf-check">✓</span>Deep customer profile</div>
+        <div class="price-feat"><span class="pf-check">✓</span>Top 10 communities + posting tips</div>
+        <div class="price-feat"><span class="pf-check">✓</span>3 real viral post examples</div>
+        <div class="price-feat"><span class="pf-check">✓</span>Full messaging angle report</div>
+      </div>
+      <button class="price-btn pb-btn-paid" onclick="document.getElementById('hero-email').focus();window.scrollTo({top:0,behavior:'smooth'})">get early access →</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta">
+  <div class="cta-inner">
+    <div class="cta-kicker">ready to find your customers?</div>
+    <h2>Stop guessing.<br>Start knowing.</h2>
+    <p class="cta-body">Paste your app URL. Get your exact customer, their communities, their language, and proof of what works — in 60 seconds. Free to start.</p>
+    <div class="cta-form">
+      <input class="cta-input" id="cta-email" type="email" placeholder="your@email.com">
+      <button class="cta-btn" onclick="handleSubmit('cta-email','cta-success')">get early access →</button>
+    </div>
+    <div class="success-msg" id="cta-success" style="background:rgba(0,0,0,0.08);border-color:rgba(0,0,0,0.15);color:rgba(0,0,0,0.6);margin-top:12px">
+      You're in. We'll be in touch soon — you're #<span id="cta-num">313</span> in line.
+    </div>
+    <p class="cta-note">free tier · no credit card · ships in ~2 weeks</p>
+  </div>
+</div>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="sec-tag">questions</div>
+  <h2 style="font-size:clamp(36px,4vw,56px);margin-bottom:32px">FAQ</h2>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">How is this different from just asking Claude or ChatGPT?<span class="faq-arrow">+</span></div>
+    <div class="faq-a">Claude and ChatGPT can write marketing copy in seconds. But they don't know which specific communities your audience lives in, what posts already went viral there, or the exact tone that community responds to. We add the research layer that makes the copy actually work.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Does it work for any type of app?<span class="faq-arrow">+</span></div>
+    <div class="faq-a">Yes — SaaS, mobile apps, browser extensions, no-code tools, developer tools, consumer apps. As long as you have a URL we can scan, we can generate a positioning report. The community database covers 200+ niches.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">When does it launch?<span class="faq-arrow">+</span></div>
+    <div class="faq-a">We're targeting a launch in about 2 weeks. Early access signups get first access + the early bird pricing locked in forever. We're keeping the first cohort small so we can give everyone proper attention.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Is the $9/mo price going up?<span class="faq-arrow">+</span></div>
+    <div class="faq-a">Yes. The early bird price is $9/mo and it's locked in forever for everyone who signs up before launch. After launch it goes to $24/mo. If you're on the waitlist you'll get the option to lock in early bird before it goes public.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Do you post content for me?<span class="faq-arrow">+</span></div>
+    <div class="faq-a">No — and this is intentional. We give you the strategy, the channels, the examples, and the messaging angles. You write the actual post yourself. This makes it authentic, and authentic posts perform 10× better than auto-posted content.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="logo-sq" style="width:20px;height:20px">
+      <svg viewBox="0 0 13 13" fill="none" style="width:10px;height:10px"><path d="M2 6.5h9M6.5 2l4.5 4.5L6.5 11" stroke="#05050a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    LAUNCHKIT
+  </div>
+  <div class="footer-links">
+    <a class="fl" href="#">privacy</a>
+    <a class="fl" href="#">terms</a>
+    <a class="fl" href="https://twitter.com">twitter</a>
+  </div>
+  <div class="footer-copy">© 2025 LaunchKit · made for builders who ship</div>
+</footer>
+
+<script>
+let count = 312;
+
+function handleSubmit(inputId, successId) {
+  const input = document.getElementById(inputId);
+  const success = document.getElementById(successId);
+  if (!input.value || !input.value.includes('@')) {
+    input.style.borderColor = 'rgba(255,61,46,0.5)';
+    input.placeholder = 'enter a valid email';
+    setTimeout(() => { input.style.borderColor = ''; input.placeholder = 'your@email.com'; }, 2000);
+    return;
+  }
+  count++;
+  const numEl = success.querySelector('span');
+  if (numEl) numEl.textContent = count;
+  document.getElementById('hero-num') && (document.getElementById('hero-num').textContent = count);
+  document.getElementById('cta-num') && (document.getElementById('cta-num').textContent = count);
+  document.querySelector('.kicker-count').innerHTML = `<span class="dot-live"></span>${count} indie devs on the waitlist`;
+  input.style.display = 'none';
+  input.closest('.form-wrap, .cta-form') && (input.closest('.form-wrap, .cta-form').style.display = 'none');
+  success.style.display = 'block';
+}
+
+function toggleFaq(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
+
+// Intersection observer for scroll animations
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'none'; } });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.prob-card,.why-item,.testi-card,.price-card,.faq-item').forEach(el => {
+  el.style.opacity = 0;
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
